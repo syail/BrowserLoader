@@ -13,15 +13,18 @@ public class FirefoxCookieLoader implements CookieLoader {
     private final Connection connection;
 
     public FirefoxCookieLoader(Path cookieStoragePath) throws SQLException {
-        connection = DriverManager.getConnection("jdbc:sqlite:" + cookieStoragePath.toString());
+        if(!cookieStoragePath.toFile().exists())
+            throw new IllegalArgumentException(String.format("Path %s does not exist", cookieStoragePath));
+
+        connection = DriverManager.getConnection("jdbc:sqlite:" + cookieStoragePath);
     }
 
-    public HashMap<String, String> GetCookies(String host) throws SQLException {
-        PreparedStatement pstmt = connection.prepareStatement("SELECT id, name, value FROM moz_cookies WHERE host = ?");
+    public HashMap<String, String> Load(String host) throws SQLException {
+        PreparedStatement stmt = connection.prepareStatement("SELECT id, name, value FROM moz_cookies WHERE host = ?");
 
-        pstmt.setString(1, String.format(".%s", host));
+        stmt.setString(1, String.format(".%s", host));
 
-        var resultSet = pstmt.executeQuery();
+        var resultSet = stmt.executeQuery();
 
         HashMap<String, String> cookies = new HashMap<>();
 

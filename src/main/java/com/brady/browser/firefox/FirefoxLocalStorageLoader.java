@@ -1,27 +1,28 @@
 package com.brady.browser.firefox;
 
 import com.brady.browser.LocalStorageItem;
+import com.brady.browser.LocalStorageLoader;
 import org.xerial.snappy.Snappy;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.LinkedList;
 
-public class FirefoxLocalStorageLoader {
+public class FirefoxLocalStorageLoader implements LocalStorageLoader {
     private final Connection connection;
 
     public FirefoxLocalStorageLoader(Path cookieStoragePath) throws SQLException {
-        connection = DriverManager.getConnection("jdbc:sqlite:" + cookieStoragePath.toString());
+        if(!cookieStoragePath.toFile().exists())
+            throw new IllegalArgumentException(String.format("Path %s does not exist", cookieStoragePath));
+
+        connection = DriverManager.getConnection("jdbc:sqlite:" + cookieStoragePath);
     }
 
-    public LinkedList<LocalStorageItem> GetLocalStorage() throws SQLException, IOException {
-        PreparedStatement stmt = connection.prepareStatement("SELECT key, compression_type, value FROM data");
-
-        var resultSet = stmt.executeQuery();
+    public LinkedList<LocalStorageItem> Load() throws SQLException, IOException {
+        var resultSet = connection.prepareStatement("SELECT key, compression_type, value FROM data").executeQuery();
 
         LinkedList<LocalStorageItem> items = new LinkedList<>();
 
@@ -30,7 +31,7 @@ public class FirefoxLocalStorageLoader {
             byte[] value = resultSet.getBytes("value");
             int CompressionType = resultSet.getInt("compression_type");
 
-            LocalStorageItem item = null;
+            LocalStorageItem item;
 
             if(CompressionType == FireFoxCompressionType.SNAPPY.ordinal()) {
                 // Snappy decompression

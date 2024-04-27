@@ -1,48 +1,47 @@
 package com.brady.browser.firefox;
 
-import java.nio.file.Path;
+import com.brady.browser.CookieLoader;
+import com.brady.browser.LocalStorageItem;
+import com.brady.browser.LocalStorageLoader;
+
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.LinkedList;
 
 import static org.junit.Assert.*;
 
 public class FirefoxTest {
 
     @org.junit.Test
-    public void getCookieStoragePath() {
-        System.out.println(Firefox.GetCookieStoragePath());
-    }
-
-    @org.junit.Test
-    public void getCookies() {
-        Path cookieStoragePath = Firefox.GetCookieStoragePath();
-
+    public void loadFirefox() {
         try {
-            FirefoxCookieLoader cookieLoader = new FirefoxCookieLoader(cookieStoragePath);
-            var cookies = cookieLoader.GetCookies("youtube.com");
-            cookieLoader.Close();
+            CookieLoader cookieLoader = Firefox.GetCookieLoader();
+            LocalStorageLoader localStorageLoader = Firefox.GetLocalStorageLoader("https", "github.com");
 
-            System.out.println(cookies);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+            assertNotNull(cookieLoader);
+            assertNotNull(localStorageLoader);
 
-    @org.junit.Test
-    public void getLocalStorage() {
-        Path localStoragePath = Firefox.GetLocalStoragePath("https", "youtube.com");
+            HashMap<String, String> cookies = cookieLoader.Load("github.com");
+            LinkedList<LocalStorageItem> localStorageItems = localStorageLoader.Load();
 
-        System.out.println(localStoragePath);
+            assertNotNull(cookies);
+            assertNotNull(localStorageItems);
 
-        try {
-            FirefoxLocalStorageLoader storageLoader = new FirefoxLocalStorageLoader(localStoragePath);
-
-            var items = storageLoader.GetLocalStorage();
-
-            storageLoader.Close();
-
-            for (var item : items) {
-                System.out.println(item.key + " " + item.value + " ");
+            System.out.println("Cookies:");
+            for (var cookie : cookies.entrySet()) {
+                System.out.println(cookie.getKey() + ": " + cookie.getValue());
             }
-        } catch (Exception e) {
+
+            System.out.println("Local Storage Items:");
+            for(var item : localStorageItems) {
+                System.out.println(item.getKey() + ": " + item.getValue());
+            }
+
+            cookieLoader.Close();
+            localStorageLoader.Close();
+
+        } catch (SQLException | IOException e) {
             e.printStackTrace();
         }
     }
