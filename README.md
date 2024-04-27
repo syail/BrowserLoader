@@ -1,6 +1,9 @@
 # BrowserLoader
 Extracts cookies and local storage from browsers such as Firefox, Chrome, IE, etc.
 
+> [!IMPORTANT]
+> This project is only supported firefox browser. 
+
 ## Basic examples
 
 ### Firefox
