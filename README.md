@@ -1,4 +1,5 @@
 # BrowserLoader
+Extracts cookies and local storage from browsers such as Firefox, Chrome, IE, etc.
 
 ## Basic examples
 
@@ -30,3 +31,7 @@ public class Main {
     }
 }
 ```
+
+### Basic references
+
+- [Firefox cookie, local storage 추출](https://doyu66.tistory.com/24)
